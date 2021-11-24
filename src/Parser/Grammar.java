@@ -6,14 +6,14 @@ import java.util.*;
 
 public class Grammar {
     final Set<NonTerminal> nonTerminals = new HashSet<>();
-    final Set<Terminal>    terminals    = new HashSet<>();
-    final List<Production> productions  = new ArrayList<>();
+    final Set<Terminal> terminals = new HashSet<>();
+    final List<Production> productions = new ArrayList<>();
 
     public void read(InputStream input) throws IOException {
         // Scan each line
         Scanner fileScanner = new Scanner(input);
         while (fileScanner.hasNextLine()) {
-            String        line             = fileScanner.nextLine();
+            String line = fileScanner.nextLine();
             List<Element> productionSource = new LinkedList<>();
 
             // Scan the production source
@@ -36,8 +36,8 @@ public class Grammar {
             // Scan the production result
             Scanner resultScanner = new Scanner(line.split("::=")[1]);
             while (resultScanner.hasNext()) {
-                List<Element> productionResult  = new LinkedList<>();
-                Scanner       productionScanner = new Scanner(resultScanner.useDelimiter("\\|").next());
+                List<Element> productionResult = new LinkedList<>();
+                Scanner productionScanner = new Scanner(resultScanner.useDelimiter("\\|").next());
                 while (productionScanner.hasNext()) {
                     String elementValue = productionScanner.next();
                     if (elementValue.equals("$")) {
@@ -91,6 +91,62 @@ public class Grammar {
         return productions.stream()
                 .allMatch(production ->
                         production.sourceElements.size() == 1 &&
-                        production.sourceElements.get(0) instanceof NonTerminal);
+                                production.sourceElements.get(0) instanceof NonTerminal);
+    }
+
+    public List<LRItem> closure(LRItem input) {
+        if (input.firstAfterDot() == null)
+            return List.of(input);
+        List<LRItem> result = new ArrayList<>();
+        Set<LRItem> resultUnique = new HashSet<>();
+        Queue<LRItem> queue = new LinkedList<>();
+        queue.add(input);
+
+        while (!queue.isEmpty()) {
+            var current = queue.remove();
+            if (resultUnique.contains(current)) // already processed
+                continue;
+            var firstAfterDot = current.firstAfterDot();
+
+            if (firstAfterDot instanceof NonTerminal)
+                queue.addAll(getProductionsFor(firstAfterDot.value)
+                        .stream()
+                        .map(production -> new LRItem(production, 0))
+                        .toList()
+                );
+
+            if (resultUnique.add(current))
+                result.add(current);
+        }
+        return result;
+    }
+
+    public List<LRItem> goTo(List<LRItem> state, Element symbol) {
+        return state
+                .stream()
+                .filter(item -> symbol.equals(item.firstAfterDot()))
+                .map(item -> new LRItem(item.production, item.dotPosition + 1))
+                .flatMap(lrItem -> closure(lrItem).stream())
+                .distinct().toList();
+    }
+
+    public List<List<LRItem>> canonicalCollection() {
+        Queue<List<LRItem>> statesToProcess = new LinkedList<>();
+        List<List<LRItem>> result = new ArrayList<>();
+        statesToProcess.add(closure(new LRItem(new Production(
+                List.of(new NonTerminal("S'")),
+                productions.get(0).sourceElements), 0)));
+        while (!statesToProcess.isEmpty()) {
+            var current = statesToProcess.remove();
+            statesToProcess.addAll(current.stream().map(LRItem::firstAfterDot)
+                    .filter(Objects::nonNull)
+                    .map(s -> goTo(current, s))
+                    .distinct()
+                    .filter(state -> !result.contains(state))
+                    .toList());
+            if (!result.contains(current))
+                result.add(current);
+        }
+        return result;
     }
 }

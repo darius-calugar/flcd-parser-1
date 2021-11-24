@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class Production {
-    List<Element> sourceElements;
-    List<Element> resultElements;
+    public final List<Element> sourceElements;
+    public final List<Element> resultElements;
 
     public Production(List<Element> source, List<Element> result) {
         this.sourceElements = source;
@@ -23,5 +23,18 @@ public class Production {
                 .map(Objects::toString)
                 .reduce("", (lhs, rhs) -> lhs + " " + rhs)
                 .stripLeading();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Production that = (Production) o;
+        return Objects.equals(sourceElements, that.sourceElements) && Objects.equals(resultElements, that.resultElements);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sourceElements, resultElements);
     }
 }
