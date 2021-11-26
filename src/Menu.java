@@ -15,7 +15,7 @@ public class Menu {
     public void start() {
         try {
             grammar = new Grammar();
-            grammar.read(new FileInputStream("input/g1.txt"));
+            grammar.read(new FileInputStream("input/g2.txt"));
 
             showMenu();
             while (running) {

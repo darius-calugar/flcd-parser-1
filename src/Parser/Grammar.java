@@ -127,7 +127,8 @@ public class Grammar {
                 .filter(item -> symbol.equals(item.firstAfterDot()))
                 .map(item -> new LRItem(item.production, item.dotPosition + 1))
                 .flatMap(lrItem -> closure(lrItem).stream())
-                .distinct().toList();
+                .distinct()
+                .toList();
     }
 
     public List<List<LRItem>> canonicalCollection() {
@@ -138,7 +139,9 @@ public class Grammar {
                 productions.get(0).sourceElements), 0)));
         while (!statesToProcess.isEmpty()) {
             var current = statesToProcess.remove();
-            statesToProcess.addAll(current.stream().map(LRItem::firstAfterDot)
+            statesToProcess.addAll(current
+                    .stream()
+                    .map(LRItem::firstAfterDot)
                     .filter(Objects::nonNull)
                     .map(s -> goTo(current, s))
                     .distinct()
