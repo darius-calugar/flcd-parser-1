@@ -1,11 +1,10 @@
-import Parser.Grammar;
-import Parser.LRItem;
-import Parser.Production;
-import Parser.State;
+import Parser.*;
 
 import java.io.FileInputStream;
-import java.util.*;
-import java.util.random.RandomGenerator;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class Menu {
@@ -16,7 +15,7 @@ public class Menu {
     public void start() {
         try {
             grammar = new Grammar();
-            grammar.read(new FileInputStream("input/g1.txt"));
+            grammar.read(new FileInputStream("input/g3.txt"));
 
             showMenu();
             while (running) {
@@ -30,6 +29,8 @@ public class Menu {
                     case "closures" -> this::printClosures;
                     case "gotos" -> this::printGoTos;
                     case "colcan" -> this::printCanonicalCollection;
+                    case "table" -> this::printTable;
+                    case "parse" -> this::parse;
                     case "exit" -> this::exit;
                     default -> null;
                 };
@@ -40,7 +41,6 @@ public class Menu {
             e.printStackTrace();
         }
     }
-
 
     void showNonTerminals() {
         for (var e : grammar.getNonTerminals()) {
@@ -111,6 +111,32 @@ public class Menu {
         }
     }
 
+    private void printTable() {
+        var table = new LRTable(grammar);
+        for (var entry : table.table.entrySet()) {
+            System.out.println(entry.getKey());
+            System.out.println("\t" + entry.getValue());
+        }
+    }
+
+    void parse() {
+        var table = new LRTable(grammar);
+        var result = table.parse(List.of(
+                new Terminal("a"),
+                new Terminal("b"),
+                new Terminal("b"),
+                new Terminal("c")
+        ));
+        System.out.println(result);
+        result = table.parse(List.of(
+                new Terminal("b"),
+                new Terminal("a"),
+                new Terminal("b"),
+                new Terminal("c")
+        ));
+        System.out.println(result);
+    }
+
     private void showIsCFG() {
         System.out.println(grammar.isCFG()
                 ? "The grammar is context free"
@@ -131,6 +157,8 @@ public class Menu {
         System.out.println("closures                    - shows all possible closures");
         System.out.println("gotos                       - shows all gotos of a random state");
         System.out.println("colcan                      - shows the canonical collection for this grammar");
+        System.out.println("table                       - shows the LR table");
+        System.out.println("parse                       - Parse an input");
         System.out.println("exit                        - Exit the program");
     }
 }

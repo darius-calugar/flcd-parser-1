@@ -19,12 +19,14 @@ public class State {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         State state = (State) o;
-        return  _hashCode != null &&
-                _hashCode.equals(state._hashCode) &&
-                Objects.equals(_items, state._items);
+        return _hashCode != null &&
+               _hashCode.equals(state._hashCode) &&
+               Objects.equals(_items, state._items);
     }
 
     @Override
@@ -32,5 +34,10 @@ public class State {
         if (_hashCode == null)
             return _hashCode = Objects.hash(_items);
         return _hashCode;
+    }
+
+    @Override
+    public String toString() {
+        return _items.toString();
     }
 }
