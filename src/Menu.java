@@ -1,6 +1,7 @@
 import Parser.Grammar;
 import Parser.LRItem;
 import Parser.Production;
+import Parser.State;
 
 import java.io.FileInputStream;
 import java.util.*;
@@ -8,14 +9,14 @@ import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 
 public class Menu {
-    boolean running      = true;
+    boolean running = true;
     Grammar grammar;
     Scanner inputScanner = new Scanner(System.in);
 
     public void start() {
         try {
             grammar = new Grammar();
-            grammar.read(new FileInputStream("input/g2.txt"));
+            grammar.read(new FileInputStream("input/g1.txt"));
 
             showMenu();
             while (running) {
@@ -66,11 +67,11 @@ public class Menu {
     }
 
     private void printClosures() {
-        for (Production prod: grammar.getProductions()) {
+        for (Production prod : grammar.getProductions()) {
             for (int i = 0; i <= prod.resultElements.size(); ++i) {
                 var testLRItem = new LRItem(prod, i);
                 System.out.println("Closure of " + testLRItem);
-                for (var entry: grammar.closure(testLRItem))
+                for (var entry : grammar.closure(testLRItem))
                     System.out.println("    " + entry);
             }
         }
@@ -82,19 +83,21 @@ public class Menu {
         Collections.shuffle(prod);
         var stateSize = r.nextInt(prod.size());
         var chosenProductions = prod.stream().limit(stateSize).toList();
-        var state = chosenProductions
-                .stream()
-                .map(p -> new LRItem(p, r.nextInt(p.resultElements.size())))
-                .toList();
-        var symbols = state.stream().map(LRItem::firstAfterDot).collect(Collectors.toSet());
+        var state = new State(
+                chosenProductions
+                        .stream()
+                        .map(p -> new LRItem(p, r.nextInt(p.resultElements.size())))
+                        .toList()
+        );
+        var symbols = state.getItems().stream().map(LRItem::firstAfterDot).collect(Collectors.toSet());
 
         System.out.println("Input:");
-        for (var item: state)
+        for (var item : state.getItems())
             System.out.println("    " + item);
 
-        for (var s: symbols) {
+        for (var s : symbols) {
             System.out.println("goto (state, " + s + ")");
-            for (var item: grammar.goTo(state, s))
+            for (var item : grammar.goTo(state, s).getItems())
                 System.out.println("    " + item);
         }
     }
@@ -103,7 +106,7 @@ public class Menu {
         var coll = grammar.canonicalCollection();
         for (int i = 0; i < coll.size(); ++i) {
             System.out.println("State " + i + ":");
-            for (var item: coll.get(i))
+            for (var item : coll.get(i).getItems())
                 System.out.println("    " + item);
         }
     }

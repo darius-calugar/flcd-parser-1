@@ -121,25 +121,38 @@ public class Grammar {
         return result;
     }
 
-    public List<LRItem> goTo(List<LRItem> state, Element symbol) {
-        return state
+    public State goTo(State state, Element symbol) {
+        return new State(state
+                .getItems()
                 .stream()
                 .filter(item -> symbol.equals(item.firstAfterDot()))
                 .map(item -> new LRItem(item.production, item.dotPosition + 1))
                 .flatMap(lrItem -> closure(lrItem).stream())
                 .distinct()
-                .toList();
+                .toList()
+        );
     }
 
-    public List<List<LRItem>> canonicalCollection() {
-        Queue<List<LRItem>> statesToProcess = new LinkedList<>();
-        List<List<LRItem>> result = new ArrayList<>();
-        statesToProcess.add(closure(new LRItem(new Production(
-                List.of(new NonTerminal("S'")),
-                productions.get(0).sourceElements), 0)));
+    public List<State> canonicalCollection() {
+        Queue<State> statesToProcess = new LinkedList<>();
+        List<State> result = new ArrayList<>();
+        statesToProcess.add(
+                new State(
+                        closure(
+                                new LRItem(
+                                        new Production(
+                                                List.of(new NonTerminal("S'")),
+                                                productions.get(0).sourceElements
+                                        ),
+                                        0
+                                )
+                        )
+                )
+        );
         while (!statesToProcess.isEmpty()) {
             var current = statesToProcess.remove();
             statesToProcess.addAll(current
+                    .getItems()
                     .stream()
                     .map(LRItem::firstAfterDot)
                     .filter(Objects::nonNull)
