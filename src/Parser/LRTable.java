@@ -63,7 +63,7 @@ public class LRTable {
             return null;
         if (state.getItems().stream()
                     .map(LRItem::firstAfterDot)
-                    .filter(Objects::nonNull)
+                    .filter(Objects::isNull)
                     .count() > 1)
             throw new ParseException(state, "Reduce - Reduce conflict");
         var production = state.getItems().stream()
@@ -78,7 +78,7 @@ public class LRTable {
                 throw new ParseException(state, "Could not reduce");
 
             var elements = IntStream.range(0, handle.size())
-                    .mapToObj(i -> handle.get(handle.size() - i).item1())
+                    .mapToObj(i -> handle.get(handle.size() - i - 1).item1())
                     .toList();
             if (!elements.equals(resultElements))
                 throw new ParseException(state, "Could not reduce");
@@ -120,7 +120,7 @@ public class LRTable {
                 new LinkedList<>(input),
                 new LinkedList<>()
         );
-        while (!config.accepted() && !config.inputStack().isEmpty()) {
+        while (!config.accepted()) {
             try {
                 var currentState = config.workingStack().getFirst().item2();
                 config = actions.get(currentState).apply(config);

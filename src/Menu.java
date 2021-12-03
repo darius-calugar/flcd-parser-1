@@ -128,13 +128,6 @@ public class Menu {
                 new Terminal("c")
         ));
         System.out.println(result);
-        result = table.parse(List.of(
-                new Terminal("b"),
-                new Terminal("a"),
-                new Terminal("b"),
-                new Terminal("c")
-        ));
-        System.out.println(result);
     }
 
     private void showIsCFG() {
