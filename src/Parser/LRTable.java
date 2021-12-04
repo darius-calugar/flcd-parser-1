@@ -110,7 +110,7 @@ public class LRTable {
         );
     }
 
-    public boolean parse(List<Terminal> input) {
+    public Optional<Collection<Production>> parse(List<Terminal> input) {
         var config = new Configuration(
                 false,
                 new LinkedList<>(List.of(new Pair<>(
@@ -129,7 +129,7 @@ public class LRTable {
                 break;
             }
         }
-        System.out.println(config.outputStack());
-        return config.accepted();
+        // System.out.println(config.outputStack());
+        return config.accepted() ? Optional.of(config.outputStack()) : Optional.empty();
     }
 }

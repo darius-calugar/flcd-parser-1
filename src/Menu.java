@@ -1,10 +1,10 @@
 import Parser.*;
 
 import java.io.FileInputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Menu {
@@ -15,7 +15,7 @@ public class Menu {
     public void start() {
         try {
             grammar = new Grammar();
-            grammar.read(new FileInputStream("input/g3.txt"));
+            grammar.read(new FileInputStream("input/g2.txt"));
 
             showMenu();
             while (running) {
@@ -121,13 +121,43 @@ public class Menu {
 
     void parse() {
         var table = new LRTable(grammar);
-        var result = table.parse(List.of(
-                new Terminal("a"),
-                new Terminal("b"),
-                new Terminal("b"),
-                new Terminal("c")
-        ));
-        System.out.println(result);
+        String fn = inputScanner.next();
+        Optional<Collection<Production>> result;
+        try {
+            result = table.parse(
+                    Files.lines(Path.of(fn))
+                            .map(line -> Arrays.stream(line.split(", ")).findFirst())
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .map(token -> (token.equals("IDENTIFIER") ? "identifier" : token))
+                            .map(token -> (token.equals("CONSTANT") ? "const" : token))
+                            .map(Terminal::new)
+                            .toList()
+            );
+        } catch (IOException e) {
+            System.out.println("File not found");
+            return;
+        }
+
+        var initial = ((NonTerminal) grammar.getProductions().get(0).sourceElements.get(0));
+
+        String printOption = inputScanner.next();
+        if (result.isEmpty()) {
+            if (printOption.equals("ok"))
+                System.out.println(false);
+            else
+                System.out.println("Could not print productions");
+            return;
+        }
+
+        switch (printOption) {
+            case "ok" -> System.out.println(true);
+            case "graph" -> System.out.println(new ParseTree(initial, result.get().stream().toList()).toGraphString());
+            case "table" -> System.out.println(new ParseTree(initial, result.get().stream().toList()));
+            case "list" -> System.out.println(result.get());
+            default -> System.out.println("Unknown print option");
+        }
+
     }
 
     private void showIsCFG() {
