@@ -154,7 +154,7 @@ public class Menu {
             case "ok" -> System.out.println(true);
             case "graph" -> System.out.println(new ParseTree(initial, result.get().stream().toList()).toGraphString());
             case "table" -> System.out.println(new ParseTree(initial, result.get().stream().toList()));
-            case "list" -> System.out.println(result.get());
+            case "list" -> System.out.println(result.get().stream().map(Object::toString).reduce("", (a, b) -> a + "\n" + b));
             default -> System.out.println("Unknown print option");
         }
 

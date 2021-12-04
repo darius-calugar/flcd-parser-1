@@ -38,9 +38,15 @@ public class ParseTree {
 
     @Override
     public String toString() { // table
-        return "ParseTree{" +
-                "table=" + table +
-                '}';
+        return "element, father, sibling" +
+               table.entrySet()
+                       .stream()
+                       .flatMap(entry -> entry.getValue()
+                               .stream()
+                               .map(fatherSiblingPair -> entry.getKey().toString() + ", " +
+                                                         fatherSiblingPair.item1() + ", " +
+                                                         fatherSiblingPair.item2()))
+                       .reduce("", (a, b) -> a + "\n" + b);
     }
 
     public String toGraphString() {
@@ -53,12 +59,12 @@ public class ParseTree {
                 table.entrySet()
                         .stream()
                         .flatMap(entry -> {
-                            var ref = new Object() {
-                                int index = 0;
-                            };
-                            return entry.getValue()
-                                    .stream()
-                                    .map(fatherSiblingPair -> entry.getKey().toString() + ref.index++ + " " + fatherSiblingPair.item1());
+                                    var ref = new Object() {
+                                        int index = 0;
+                                    };
+                                    return entry.getValue()
+                                            .stream()
+                                            .map(fatherSiblingPair -> entry.getKey().toString() + ref.index++ + " " + fatherSiblingPair.item1());
                                 }
 
                         )
