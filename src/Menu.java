@@ -15,7 +15,7 @@ public class Menu {
     public void start() {
         try {
             grammar = new Grammar();
-            grammar.read(new FileInputStream("input/g2.txt"));
+            grammar.read(new FileInputStream("input/g3.txt"));
 
             showMenu();
             while (running) {
@@ -152,7 +152,6 @@ public class Menu {
 
         switch (printOption) {
             case "ok" -> System.out.println(true);
-            case "graph" -> System.out.println(new ParseTree(initial, result.get().stream().toList()).toGraphString());
             case "table" -> System.out.println(new ParseTree(initial, result.get().stream().toList()));
             case "list" -> System.out.println(result.get().stream().map(Object::toString).reduce("", (a, b) -> a + "\n" + b));
             default -> System.out.println("Unknown print option");

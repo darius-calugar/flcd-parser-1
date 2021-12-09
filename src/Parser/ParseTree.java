@@ -5,69 +5,42 @@ import Util.Pair;
 import java.util.*;
 
 public class ParseTree {
-    private Map<Element, List<Pair<Element, Element>>> table;
+    private List<Pair<Element, Pair<Integer, Integer>>> table;
 
     public ParseTree(NonTerminal initial, List<Production> productionString) {
-        List<Element> currentResult = new ArrayList<>();
-        currentResult.add(initial);
-        table = new Hashtable<>();
-        table.put(initial, new ArrayList<>(List.of(new Pair<>(null, null))));
+        List<Pair<Integer, Element>> currentResult = new ArrayList<>();
+        currentResult.add(new Pair<>(0, initial));
+        table = new ArrayList<>();
+        table.add(new Pair<>(initial, new Pair<>(null, null)));
         for (var production : productionString) {
             var left = production.sourceElements.stream().findFirst().get(); // consider single element on left
-            var indexInResult = currentResult.lastIndexOf(left);
+            var elementInResult = currentResult.stream()
+                    .filter(entry -> entry.item2().equals(left))
+                    .reduce((a, b) -> b)
+                    .orElse(null);
+            var indexInResult = currentResult.lastIndexOf(elementInResult);
             currentResult.remove(indexInResult);
-            for (int i = 0; i < production.resultElements.size(); i++) {
+            Integer sibling = null;
+            for (int i = production.resultElements.size() - 1; i >= 0; --i) {
                 Element element = production.resultElements.get(i);
-                currentResult.add(indexInResult, element);
-                indexInResult += 1; // TODO currentResult rev
-                var tableList = table.getOrDefault(element, null);
-                var pairToInsert = new Pair<>(
-                        left,
-                        i < production.resultElements.size() - 1 ?
-                                production.resultElements.get(i + 1) :
-                                null
-                );
-                if (tableList == null) {
-                    table.put(element, new ArrayList<>(List.of(pairToInsert)));
-                } else {
-                    tableList.add(pairToInsert);
-                }
+                table.add(new Pair<>(element, new Pair<>(elementInResult.item1(), sibling)));
+                sibling = table.size() - 1;
+                currentResult.add(indexInResult, new Pair<>(sibling, element));
             }
         }
     }
 
     @Override
     public String toString() { // table
-        return "element, father, sibling" +
-               table.entrySet()
-                       .stream()
-                       .flatMap(entry -> entry.getValue()
-                               .stream()
-                               .map(fatherSiblingPair -> entry.getKey().toString() + ", " +
-                                                         fatherSiblingPair.item1() + ", " +
-                                                         fatherSiblingPair.item2()))
-                       .reduce("", (a, b) -> a + "\n" + b);
-    }
-
-    public String toGraphString() {
-        return
-                table.keySet()
-                        .stream().sorted(Comparator.comparing(o -> o.value))
-                        .map(Element::toString)
-                        .reduce("", (a, b) -> a + "\n" + b) +
-                "\n" +
-                table.entrySet()
-                        .stream()
-                        .flatMap(entry -> {
-                                    var ref = new Object() {
-                                        int index = 0;
-                                    };
-                                    return entry.getValue()
-                                            .stream()
-                                            .map(fatherSiblingPair -> entry.getKey().toString() + ref.index++ + " " + fatherSiblingPair.item1());
-                                }
-
-                        )
+        var ref = new Object() {
+            Integer index = 0;
+        };
+        return "index, element, father, sibling" +
+                table.stream()
+                        .map(entry -> (ref.index++).toString() + " " +
+                                entry.item1().toString() + " " +
+                                (entry.item2().item1() != null ? entry.item2().item1().toString() : "null") + " " +
+                                (entry.item2().item2() != null ? entry.item2().item2().toString() : "null"))
                         .reduce("", (a, b) -> a + "\n" + b);
     }
 }
