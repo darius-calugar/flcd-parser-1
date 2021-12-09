@@ -1,5 +1,8 @@
 import Parser.*;
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -154,6 +157,15 @@ public class Menu {
             case "ok" -> System.out.println(true);
             case "table" -> System.out.println(new ParseTree(initial, result.get().stream().toList()));
             case "list" -> System.out.println(result.get().stream().map(Object::toString).reduce("", (a, b) -> a + "\n" + b));
+            case "graph" -> {
+                var graph = new ParseTree(initial, result.get().stream().toList()).asGraph();
+                try {
+                    Graphviz.fromGraph(graph)
+                            .render(Format.PNG).toFile(new File("parse_graph.png"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             default -> System.out.println("Unknown print option");
         }
 
