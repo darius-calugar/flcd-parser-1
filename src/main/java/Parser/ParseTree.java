@@ -3,12 +3,14 @@ package Parser;
 import Util.Pair;
 import guru.nidi.graphviz.attribute.Label;
 import guru.nidi.graphviz.attribute.Rank;
-import guru.nidi.graphviz.model.Factory;
+import guru.nidi.graphviz.attribute.Style;
 import guru.nidi.graphviz.model.Graph;
 
 import java.util.*;
 import java.util.stream.Stream;
-import static guru.nidi.graphviz.model.Factory.node;
+
+import static guru.nidi.graphviz.attribute.Attributes.attr;
+import static guru.nidi.graphviz.model.Factory.*;
 
 public class ParseTree {
     private final List<Pair<Element, Pair<Integer, Integer>>> table;
@@ -54,9 +56,9 @@ public class ParseTree {
         var index = new Object() {
             Integer val = -1;
         };
-        return Factory.graph()
+        return graph()
                 .directed()
-                .graphAttr().with(Rank.dir(Rank.RankDir.TOP_TO_BOTTOM))
+                .graphAttr().with(Rank.dir(Rank.RankDir.TOP_TO_BOTTOM), attr("ordering", "out"))
                 .with(
                         table.stream()
                                 .flatMap(entry -> {
@@ -64,8 +66,11 @@ public class ParseTree {
                                             if (entry.item2().item1() == null)
                                                 return Stream.of();
                                             return Stream.of(
-                                                    node(entry.item2().item1().toString()).with(Label.of(table.get(entry.item2().item1()).item1().value))
-                                                            .link(node(index.val.toString()).with(Label.of(entry.item1().value)))
+                                                    node(entry.item2().item1().toString())
+                                                            .with(Label.of(table.get(entry.item2().item1()).item1().value))
+                                                            .link(to(node(index.val.toString())
+                                                                    .with(Label.of(entry.item1().value)))
+                                                            )
                                             );
                                         }
                                 ).toList()

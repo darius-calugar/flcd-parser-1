@@ -1,6 +1,5 @@
 import Parser.*;
-import guru.nidi.graphviz.engine.Format;
-import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.engine.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +17,7 @@ public class Menu {
     public void start() {
         try {
             grammar = new Grammar();
-            grammar.read(new FileInputStream("input/g3.txt"));
+            grammar.read(new FileInputStream("input/g2.txt"));
 
             showMenu();
             while (running) {
@@ -161,6 +160,7 @@ public class Menu {
                 var graph = new ParseTree(initial, result.get().stream().toList()).asGraph();
                 try {
                     Graphviz.fromGraph(graph)
+                            .engine(Engine.DOT)
                             .render(Format.PNG).toFile(new File("parse_graph.png"));
                 } catch (IOException e) {
                     e.printStackTrace();
