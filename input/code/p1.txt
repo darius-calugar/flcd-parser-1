@@ -1,0 +1,12 @@
+begin
+    integer a
+    integer b
+    read a
+    read b
+    if a is greater compared to b then just
+    begin
+        print a
+        stop
+    end
+    print b
+end

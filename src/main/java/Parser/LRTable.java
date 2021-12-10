@@ -43,6 +43,9 @@ public class LRTable {
                 .noneMatch(Objects::nonNull))
             return null;
         return configuration -> {
+            if (configuration.inputStack().isEmpty()) {
+                throw new ParseException(state, "Could not shift");
+            }
             Element elementFromInput = configuration.inputStack().pop();
             var currentStateElementPair = configuration.workingStack().getFirst();
             var targetState = table.getOrDefault(new Pair<>(currentStateElementPair.item2(), elementFromInput), null);
@@ -62,9 +65,9 @@ public class LRTable {
                 .noneMatch(Objects::isNull))
             return null;
         if (state.getItems().stream()
-                    .map(LRItem::firstAfterDot)
-                    .filter(Objects::isNull)
-                    .count() > 1)
+                .map(LRItem::firstAfterDot)
+                .filter(Objects::isNull)
+                .count() > 1)
             throw new ParseException(state, "Reduce - Reduce conflict");
         var production = state.getItems().stream()
                 .filter(item -> item.firstAfterDot() == null)
@@ -74,14 +77,20 @@ public class LRTable {
             var handle = configuration.workingStack().stream()
                     .limit(resultElements.size())
                     .toList();
-            if (handle.size() != resultElements.size())
+            if (handle.size() != resultElements.size()) {
+                if (configuration.inputStack().size() > 0)
+                    throw new ParseException(state, configuration.inputStack().getFirst(), "Could not reduce");
                 throw new ParseException(state, "Could not reduce");
+            }
 
             var elements = IntStream.range(0, handle.size())
                     .mapToObj(i -> handle.get(handle.size() - i - 1).item1())
                     .toList();
-            if (!elements.equals(resultElements))
+            if (!elements.equals(resultElements)) {
+                if (configuration.inputStack().size() > 0)
+                    throw new ParseException(state, configuration.inputStack().getFirst(), "Could not reduce");
                 throw new ParseException(state, "Could not reduce");
+            }
 
             handle.forEach(ignored -> configuration.workingStack().pop());
             configuration.workingStack().push(new Pair<>(
@@ -100,14 +109,18 @@ public class LRTable {
     private Function<Configuration, Configuration> makeAccept(State state) {
         if (state.getItems().stream()
                 .noneMatch(item -> Objects.equals(item.production.sourceElements.stream().findFirst().get().value, "S'") &&
-                                   item.firstAfterDot() == null))
+                        item.firstAfterDot() == null))
             return null;
-        return configuration -> new Configuration(
-                true,
-                configuration.workingStack(),
-                configuration.inputStack(),
-                configuration.outputStack()
-        );
+        return configuration -> {
+            if (!configuration.inputStack().isEmpty())
+                throw new ParseException(state, configuration.inputStack().getFirst(), "Could not accept");
+            return new Configuration(
+                    true,
+                    configuration.workingStack(),
+                    configuration.inputStack(),
+                    configuration.outputStack()
+            );
+        };
     }
 
     public Optional<Collection<Production>> parse(List<Terminal> input) {
@@ -120,10 +133,12 @@ public class LRTable {
                 new LinkedList<>(input),
                 new LinkedList<>()
         );
+        // System.out.println(config);
         while (!config.accepted()) {
             try {
                 var currentState = config.workingStack().getFirst().item2();
                 config = actions.get(currentState).apply(config);
+                // System.out.println(config);
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 break;

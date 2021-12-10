@@ -1,0 +1,36 @@
+begin
+    define my type
+    with
+        integer n1
+        integer n2
+    end
+
+    my type obj
+    integer k
+    the n1 of obj becomes 1
+    the n2 of obj becomes 1
+    read k
+    if k is smaller compared to 1 then just
+    begin
+        print "Error this will not work"
+        stop
+    end
+    if k is smaller compared to 3 then just
+    begin
+        print 1
+        stop
+    end
+    k becomes subtract 2 from k
+    each i from 1 to k
+    begin
+        integer new
+        new becomes add the n1 of obj to the n2 of obj
+        if i is equal compared to k then just
+        begin
+            print new
+            stop
+        end
+        the n1 of obj becomes the n2 of obj
+        the n2 of obj becomes new
+    end
+end
